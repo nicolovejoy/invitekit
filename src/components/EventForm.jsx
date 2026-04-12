@@ -14,8 +14,8 @@ function validateEndTime(startTime, endTime) {
   const [sh, sm] = startTime.split(':').map(Number)
   const [eh, em] = endTime.split(':').map(Number)
   const startMins = sh * 60 + sm
-  let endMins = eh * 60 + em
-  if (endMins <= startMins) endMins += 24 * 60
+  const endMins = eh * 60 + em
+  if (endMins <= startMins) return 'End time must be after start time'
   const diff = endMins - startMins
   if (diff > 12 * 60) return 'End time must be within 12 hours of start time'
   return null

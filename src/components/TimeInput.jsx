@@ -41,6 +41,18 @@ export default function TimeInput({ value, onChange, id, name, required }) {
     setHighlighted(-1)
   }
 
+  function handleBlur() {
+    setTimeout(() => setOpen(false), 150)
+    const match = TIME_SLOTS.find(s =>
+      s.display.toLowerCase() === text.toLowerCase().trim()
+    )
+    if (match) {
+      onChange({ target: { name, value: match.value } })
+    } else {
+      setText(format24to12(value))
+    }
+  }
+
   function handleKeyDown(e) {
     if (!open) {
       if (e.key === 'ArrowDown') { setOpen(true); e.preventDefault() }
@@ -80,7 +92,7 @@ export default function TimeInput({ value, onChange, id, name, required }) {
         value={text}
         onChange={e => { setText(e.target.value); setOpen(true); setHighlighted(-1) }}
         onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onBlur={handleBlur}
         onKeyDown={handleKeyDown}
       />
       {open && filtered.length > 0 && (
