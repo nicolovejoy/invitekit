@@ -133,4 +133,6 @@ This repo was originally the private `nicolovejoy/freevite`. It was relaunched a
 
 ## Next Steps
 
-- Fresh issues tracked in GitHub — open issues cover time validation, RSVP UX audit, autofill past invitees, all-day events, self-hoster README, rate limiting, theme/copy centralization, and i18n.
+- Review and merge PR #21 (fix time validation + CI workflow + ESLint config)
+- Review PR #9 (firebase 10→12 major version bump) — check for breaking changes
+- Open issues: RSVP UX audit (#12), all-day events (#13), autofill past invitees (#15), rate limiting (#17), self-hoster SETUP.md (#18), brand config (#19), Firestore rules tightening (#20)
