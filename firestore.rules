@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOrganizer() {
+      return request.auth != null && request.auth.token['freevite:organizer'] == true;
+    }
+
+    match /events/{eventId} {
+      // Guests need to read event details on the RSVP page
+      allow read: if true;
+      allow write: if isOrganizer();
+    }
+
+    match /invites/{token} {
+      // Anyone with the token URL can read — the UUID is the secret
+      allow read: if true;
+      // Organizers create invite docs directly from the client
+      allow create: if isOrganizer();
+      // Claimed owner can update RSVP fields only; organizers can update anything
+      allow update: if isOrganizer()
+        || (request.auth != null
+            && request.auth.uid == resource.data.uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['rsvp', 'guestCount', 'rsvpUpdatedAt']));
+      allow delete: if isOrganizer();
+    }
+
+    match /comments/{commentId} {
+      // Public comments visible to anyone; private only to organizers or the comment author
+      allow read: if resource.data.isPublic == true
+        || isOrganizer()
+        || (request.auth != null && request.auth.uid == resource.data.uid);
+      // Any authenticated user (incl. anonymous) can create a comment
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid;
+      // Author can update body and isPublic; organizers can update any comment
+      allow update: if isOrganizer()
+        || (request.auth != null
+            && request.auth.uid == resource.data.uid
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['body', 'isPublic']));
+      allow delete: if isOrganizer();
+    }
+
+    match /waitlist/{docId} {
+      // Public interest capture — anyone can submit, nobody can read/edit via client
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+  }
+}
