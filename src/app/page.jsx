@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signInWithRedirect, getRedirectResult, signOut, GoogleAuthProvider } from 'firebase/auth'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase'
+import { db } from '@/lib/firebase'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +14,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 export default function Home() {
   const { user, isOrganizer, loading } = useAuth()
   const router = useRouter()
-  const [authError, setAuthError] = useState(null)
   const [processing, setProcessing] = useState(true)
   const [form, setForm] = useState({ email: '', name: '', howFound: '', comments: '' })
   const [submitted, setSubmitted] = useState(false)
@@ -23,34 +21,8 @@ export default function Home() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    console.log('[auth] authDomain:', auth.config?.authDomain)
-    getRedirectResult(auth)
-      .then(async (result) => {
-        console.log('[auth] getRedirectResult:', result ? `user=${result.user.email}` : 'null')
-        if (result) {
-          const idToken = await result.user.getIdToken()
-          const resp = await fetch('/api/set-organizer-claim', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${idToken}` },
-          })
-          const body = await resp.json()
-          console.log('[auth] set-organizer-claim:', resp.status, body)
-          const tokenResult = await result.user.getIdTokenResult(true)
-          console.log('[auth] claims:', JSON.stringify(tokenResult.claims))
-          if (tokenResult.claims['freevite:organizer']) {
-            router.push('/dashboard')
-          } else {
-            await signOut(auth)
-            setAuthError('Your account is not authorized as an organizer.')
-          }
-        }
-      })
-      .catch(err => {
-        console.error('[auth] redirect error:', err)
-        setAuthError(err.message)
-      })
-      .finally(() => setProcessing(false))
-  }, [router])
+    setProcessing(false)
+  }, [])
 
   useEffect(() => {
     if (!loading && user && isOrganizer) router.push('/dashboard')
@@ -96,11 +68,6 @@ export default function Home() {
               We're building something here. Leave your email and we'll let you know when it opens up.
             </p>
           </div>
-          {authError && (
-            <Alert variant="destructive">
-              <AlertDescription>{authError}</AlertDescription>
-            </Alert>
-          )}
           {submitted ? (
             <Alert>
               <AlertDescription>Thanks — we'll be in touch.</AlertDescription>

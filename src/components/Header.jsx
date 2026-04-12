@@ -1,13 +1,27 @@
 'use client'
 
 import Link from 'next/link'
-import { signInWithRedirect, signOut, GoogleAuthProvider } from 'firebase/auth'
+import { signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 
 export default function Header() {
   const { user, isOrganizer, loading } = useAuth()
+
+  async function handleSignIn() {
+    try {
+      const result = await signInWithPopup(auth, new GoogleAuthProvider())
+      const idToken = await result.user.getIdToken()
+      await fetch('/api/set-organizer-claim', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${idToken}` },
+      })
+      await result.user.getIdToken(true)
+    } catch (err) {
+      console.error('[auth] sign-in error:', err)
+    }
+  }
 
   return (
     <header className="border-b px-4 py-3 flex items-center justify-between">
@@ -34,7 +48,7 @@ export default function Header() {
               Sign out
             </Button>
           ) : (
-            <Button size="sm" onClick={() => signInWithRedirect(auth, new GoogleAuthProvider())}>
+            <Button size="sm" onClick={handleSignIn}>
               Sign in
             </Button>
           )}
