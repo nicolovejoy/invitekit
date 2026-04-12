@@ -8,7 +8,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src/",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -26,10 +26,14 @@
     "tailwind-merge": "3.5.0"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "16.2.3",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "6.9.1",
     "@testing-library/react": "16.3.2",
     "@vitejs/plugin-react": "4.7.0",
+    "eslint": "9.39.4",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.0.1",
     "happy-dom": "20.8.9",
     "shadcn": "3.8.5",
     "tailwindcss": "^4",
