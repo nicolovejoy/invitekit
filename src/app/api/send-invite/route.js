@@ -40,6 +40,10 @@ export async function POST(request) {
 
   const invite = inviteSnap.data()
   const event = eventSnap.data()
+
+  if (event.createdBy !== decoded.uid) {
+    return NextResponse.json({ error: 'Not the event owner' }, { status: 403 })
+  }
   const link = magicLink(token)
 
   const emailRes = await fetch('https://api.resend.com/emails', {

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore'
+import { db, auth } from '@/lib/firebase'
 import { formatDate, formatTime } from '@/lib/constants'
 import OrganizerRoute from '@/components/OrganizerRoute'
 import { Card, CardContent } from '@/components/ui/card'
@@ -16,8 +16,10 @@ function DashboardContent() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const eventsQ = query(collection(db, 'events'), orderBy('date', 'desc'))
-    const invitesQ = query(collection(db, 'invites'))
+    const uid = auth.currentUser?.uid
+    if (!uid) return
+    const eventsQ = query(collection(db, 'events'), where('createdBy', '==', uid), orderBy('date', 'desc'))
+    const invitesQ = query(collection(db, 'invites'), where('eventCreatedBy', '==', uid))
     const unsubEvents = onSnapshot(eventsQ,
       snap => setEvents(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
       err => setError(err.message)
