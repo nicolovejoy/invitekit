@@ -8,7 +8,7 @@ vi.mock('next/link', () => ({
 
 // Mock firebase/auth
 vi.mock('firebase/auth', () => ({
-  signInWithRedirect: vi.fn(),
+  signInWithPopup: vi.fn().mockResolvedValue({ user: { getIdToken: vi.fn().mockResolvedValue('token') } }),
   signOut: vi.fn(),
   GoogleAuthProvider: vi.fn(),
 }))
