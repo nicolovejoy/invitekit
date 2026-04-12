@@ -34,6 +34,7 @@ const event = {
   timezone: 'America/New_York',
   location: '123 Main St',
   description: 'Bring wine!',
+  createdBy: 'org-1',
 }
 
 const invite = {
@@ -143,6 +144,21 @@ describe('POST /api/send-invite', () => {
     const req = makeRequest({ token: 'abc', eventId: 'evt1' })
     const res = await POST(req)
     expect(res.status).toBe(404)
+  })
+
+  // -- Ownership --
+
+  it('rejects organizer who does not own the event', async () => {
+    let callCount = 0
+    mockGet.mockImplementation(async () => {
+      callCount++
+      if (callCount === 1) return { exists: true, data: () => invite }
+      return { exists: true, data: () => ({ ...event, createdBy: 'other-org' }) }
+    })
+    const req = makeRequest({ token: 'abc', eventId: 'evt1' })
+    const res = await POST(req)
+    expect(res.status).toBe(403)
+    expect(await res.json()).toEqual({ error: 'Not the event owner' })
   })
 
   // -- Happy path --

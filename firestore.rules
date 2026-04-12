@@ -6,41 +6,54 @@ service cloud.firestore {
       return request.auth != null && request.auth.token['freevite:organizer'] == true;
     }
 
+    function isEventOwner(eventId) {
+      return request.auth.uid == get(/databases/$(database)/documents/events/$(eventId)).data.createdBy;
+    }
+
     match /events/{eventId} {
       // Guests need to read event details on the RSVP page
       allow read: if true;
-      allow write: if isOrganizer();
+      // Only organizers can create events (must set createdBy to own uid)
+      allow create: if isOrganizer()
+        && request.resource.data.createdBy == request.auth.uid;
+      // Only the event creator can update or delete
+      allow update, delete: if isOrganizer()
+        && resource.data.createdBy == request.auth.uid;
     }
 
     match /invites/{token} {
       // Anyone with the token URL can read — the UUID is the secret
       allow read: if true;
-      // Organizers create invite docs directly from the client
-      allow create: if isOrganizer();
-      // Claimed owner can update RSVP fields only; organizers can update anything
-      allow update: if isOrganizer()
+      // Only the event owner can create invites for their event
+      allow create: if isOrganizer()
+        && request.resource.data.eventCreatedBy == request.auth.uid;
+      // Claimed owner can update RSVP fields only; event owner can update anything
+      allow update: if (isOrganizer() && resource.data.eventCreatedBy == request.auth.uid)
         || (request.auth != null
             && request.auth.uid == resource.data.uid
             && request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['rsvp', 'guestCount', 'rsvpUpdatedAt']));
-      allow delete: if isOrganizer();
+      // Only the event owner can delete invites
+      allow delete: if isOrganizer()
+        && resource.data.eventCreatedBy == request.auth.uid;
     }
 
     match /comments/{commentId} {
-      // Public comments visible to anyone; private only to organizers or the comment author
+      // Public comments visible to anyone; private only to event owner or the comment author
       allow read: if resource.data.isPublic == true
-        || isOrganizer()
+        || (isOrganizer() && isEventOwner(resource.data.eventId))
         || (request.auth != null && request.auth.uid == resource.data.uid);
       // Any authenticated user (incl. anonymous) can create a comment
       allow create: if request.auth != null
         && request.resource.data.uid == request.auth.uid;
-      // Author can update body and isPublic; organizers can update any comment
-      allow update: if isOrganizer()
+      // Author can update body and isPublic; event owner can update any comment
+      allow update: if (isOrganizer() && isEventOwner(resource.data.eventId))
         || (request.auth != null
             && request.auth.uid == resource.data.uid
             && request.resource.data.diff(resource.data).affectedKeys()
                 .hasOnly(['body', 'isPublic']));
-      allow delete: if isOrganizer();
+      allow delete: if isOrganizer()
+        && isEventOwner(resource.data.eventId);
     }
 
     match /waitlist/{docId} {

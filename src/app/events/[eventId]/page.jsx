@@ -148,6 +148,8 @@ function EventDetailContent() {
       name: newGuest.name,
       uid: null,
       rsvp: null,
+      addedBy: auth.currentUser.uid,
+      eventCreatedBy: event.createdBy,
       createdAt: serverTimestamp(),
     })
     setNewGuest({ name: '', email: '' })
@@ -388,6 +390,8 @@ function EventDetailContent() {
         name,
         uid: null,
         rsvp: null,
+        addedBy: auth.currentUser.uid,
+        eventCreatedBy: event.createdBy,
         createdAt: serverTimestamp(),
       })
       added++

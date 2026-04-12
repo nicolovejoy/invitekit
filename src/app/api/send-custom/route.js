@@ -38,6 +38,12 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invite or event not found' }, { status: 404 })
   }
 
+  const event = eventSnap.data()
+
+  if (event.createdBy !== decoded.uid) {
+    return NextResponse.json({ error: 'Not the event owner' }, { status: 403 })
+  }
+
   const invite = inviteSnap.data()
   const link = magicLink(token)
 
