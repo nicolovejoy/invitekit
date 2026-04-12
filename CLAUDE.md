@@ -68,6 +68,7 @@ Three roles, two auth mechanisms. **Firestore rules are the security boundary, n
 - All pages are client components (`'use client'`) due to Firebase realtime listeners (`onSnapshot`)
 - API routes use `export const dynamic = 'force-dynamic'` to prevent build-time pre-rendering
 - API routes verify organizer claims server-side via `adminAuth.verifyIdToken()`
+- Organizer sign-in uses `signInWithPopup` (not redirect) — popup works across origins, enabling preview deploys on `preview.free-vite.com`. Header handles the full flow: popup → set-organizer-claim → force-refresh token.
 - `OrganizerRoute` is a client-side auth guard wrapping organizer-only pages
 - `useAuth()` hook returns `{ user, isOrganizer, loading }` — `loading` is true while `user === undefined`
 - Path alias: `@/` maps to `src/`
@@ -133,6 +134,4 @@ This repo was originally the private `nicolovejoy/freevite`. It was relaunched a
 
 ## Next Steps
 
-- Review and merge PR #21 (fix time validation + CI workflow + ESLint config)
-- Review PR #9 (firebase 10→12 major version bump) — check for breaking changes
 - Open issues: RSVP UX audit (#12), all-day events (#13), autofill past invitees (#15), rate limiting (#17), self-hoster SETUP.md (#18), brand config (#19), Firestore rules tightening (#20)
