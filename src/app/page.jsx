@@ -14,15 +14,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 export default function Home() {
   const { user, isOrganizer, loading } = useAuth()
   const router = useRouter()
-  const [processing, setProcessing] = useState(true)
   const [form, setForm] = useState({ email: '', name: '', howFound: '', comments: '' })
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    setProcessing(false)
-  }, [])
 
   useEffect(() => {
     if (!loading && user && isOrganizer) router.push('/dashboard')
@@ -48,7 +43,7 @@ export default function Home() {
     }
   }
 
-  if (loading || processing) return null
+  if (loading) return null
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-16 space-y-16">
