@@ -134,4 +134,7 @@ This repo was originally the private `nicolovejoy/freevite`. It was relaunched a
 
 ## Next Steps
 
-- Open issues: RSVP UX audit (#12), all-day events (#13), autofill past invitees (#15), rate limiting (#17), self-hoster SETUP.md (#18), brand config (#19), Firestore rules tightening (#20)
+- Permissions Phase 2: shared events with co-organizer `editors` array (see `docs/PERMISSIONS.md`)
+- Permissions Phase 3: admin role, self-service organizer management, remove ORGANIZER_EMAILS
+- Autofill past invitees (#15) — now possible with `addedBy` field on invites
+- Open issues: RSVP UX audit (#12), all-day events (#13), rate limiting (#17), self-hoster SETUP.md (#18), brand config (#19)
