@@ -9,13 +9,7 @@ updates:
       timezone: America/Los_Angeles
     open-pull-requests-limit: 5
     groups:
-      production-minor-patch:
-        dependency-type: production
-        update-types:
-          - minor
-          - patch
-      development-minor-patch:
-        dependency-type: development
+      npm-updates:
         update-types:
           - minor
           - patch
