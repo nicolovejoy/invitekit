@@ -27,6 +27,7 @@ npm run lint         # Next.js lint
 ```
 
 Deploy Firestore rules (separate from Vercel):
+
 ```bash
 firebase deploy --only firestore
 ```
@@ -78,6 +79,7 @@ Three roles, two auth mechanisms. **Firestore rules are the security boundary, n
 ### Email API Routes
 
 Six route handlers in `src/app/api/`:
+
 - `send-invite` — initial invitation
 - `send-reminder` — for confirmed attendees
 - `send-nudge` — for non-responders
@@ -97,6 +99,7 @@ Config is in `components.json` — JSX (not TSX), `new-york` style, CSS variable
 ## Environment Variables
 
 See `.env.local.example`. Key vars:
+
 - `NEXT_PUBLIC_FIREBASE_*` — client-side Firebase config (6 vars)
 - `FIREBASE_SERVICE_ACCOUNT` — full service account JSON, stringified
 - `ORGANIZER_EMAILS` — comma-separated approved organizer emails
@@ -114,6 +117,7 @@ Tests live in `src/__tests__/`. Setup file at `src/__tests__/setup.js` imports `
 ## Git Workflow
 
 **Start every session by pulling and checking what's in flight:**
+
 ```bash
 git checkout main && git pull
 gh pr list
@@ -122,7 +126,7 @@ gh issue list
 
 **IMPORTANT: Never commit directly to `main`.** All work happens on feature branches. Push the branch and open a PR for the other person to review before merging. Use GitHub Issues for all bugs and tasks — keep tickets small and contained. This applies to both humans and Claude Code.
 
-**Roles:** One contributor focuses on UX thinking and user testing first, code via Claude Code second. The other reviews PRs and handles infra/ops (env vars, Vercel, Resend, Firebase).
+**Roles:** One contributor, more junior, focuses on UX thinking and user testing first, code via Claude Code second. The other reviews PRs and handles infra/ops (env vars, Vercel, Resend, Firebase).
 
 ## Deployment
 
@@ -134,6 +138,7 @@ This repo was originally the private `nicolovejoy/freevite`. It was relaunched a
 
 ## Next Steps
 
+- Address 3 open Dependabot security alerts (postcss, uuid, @tootallnate/once) — all transitive under Next.js / firebase-admin. Either add `overrides` to package.json or schedule Next 15 → 16 major upgrade.
 - Permissions Phase 2: shared events with co-organizer `editors` array (see `docs/PERMISSIONS.md`)
 - Permissions Phase 3: admin role, self-service organizer management, remove ORGANIZER_EMAILS
 - Autofill past invitees (#15) — now possible with `addedBy` field on invites
