@@ -138,6 +138,8 @@ This repo was originally the private `nicolovejoy/freevite`. It was relaunched a
 
 ## Next Steps
 
+- **PR #33 — Refactor TimeInput to derive state during render.** Lint + tests pass; needs manual browser verification before merge. Open `npm run dev`, walk through 5 scenarios in `/events/new` and `/events/[id]/edit`: (1) initial render of saved time on edit page, (2) typing + dropdown click, (3) free-text + blur, (4) bad text + blur reverts, (5) form submit saves correct time. Once merged, Dependabot PR #31 (npm-updates group) rebases and goes green.
+- Merge gh-actions Dependabot PRs #29 (actions/checkout 4→6) and #30 (actions/setup-node 4→6) — both already green.
 - Address 3 open Dependabot security alerts (postcss, uuid, @tootallnate/once) — all transitive under Next.js / firebase-admin. Either add `overrides` to package.json or schedule Next 15 → 16 major upgrade.
 - Permissions Phase 2: shared events with co-organizer `editors` array (see `docs/PERMISSIONS.md`)
 - Permissions Phase 3: admin role, self-service organizer management, remove ORGANIZER_EMAILS
