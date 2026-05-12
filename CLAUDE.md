@@ -138,7 +138,8 @@ This repo was originally the private `nicolovejoy/freevite`. It was relaunched a
 
 ## Next Steps
 
-- Address 3 open Dependabot security alerts (postcss, uuid, @tootallnate/once) — all transitive under Next.js / firebase-admin. Either add `overrides` to package.json or schedule Next 15 → 16 major upgrade.
+- Smoke-test TimeInput in the browser: edit-event page renders saved time, typing + dropdown selection, free-text + blur, bad text reverts on blur, form submit. The 2026-05-12 refactor (#33) moved the effect-based sync to a render-time `prevValue` check.
+- One remaining Dependabot security alert: postcss (medium, transitive under Next.js). Resolve via `overrides` in package.json or schedule Next 15 → 16 major upgrade.
 - Permissions Phase 2: shared events with co-organizer `editors` array (see `docs/PERMISSIONS.md`)
 - Permissions Phase 3: admin role, self-service organizer management, remove ORGANIZER_EMAILS
 - Autofill past invitees (#15) — now possible with `addedBy` field on invites
