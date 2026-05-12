@@ -22,12 +22,14 @@ export default function TimeInput({ value, onChange, id, name, required }) {
   const [text, setText] = useState(format24to12(value))
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(-1)
+  const [prevValue, setPrevValue] = useState(value)
   const wrapperRef = useRef(null)
   const listRef = useRef(null)
 
-  useEffect(() => {
+  if (value !== prevValue) {
+    setPrevValue(value)
     setText(format24to12(value))
-  }, [value])
+  }
 
   const filtered = TIME_SLOTS.filter(s =>
     s.display.toLowerCase().includes(text.toLowerCase().trim()) ||
