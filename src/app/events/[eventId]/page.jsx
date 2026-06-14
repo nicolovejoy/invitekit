@@ -1,18 +1,18 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  doc, setDoc, getDoc, deleteDoc, getDocs, updateDoc, collection, query, where, orderBy,
-  onSnapshot, serverTimestamp,
+  doc, setDoc, deleteDoc, getDocs, updateDoc, collection, query, where, serverTimestamp,
 } from 'firebase/firestore'
 import { db, auth } from '@/lib/firebase'
 import { Copy, Check, X, Pencil, Send, Eye, Mail, Upload, Download } from 'lucide-react'
 import OrganizerRoute from '@/components/OrganizerRoute'
 import { buildInviteText, formatDate, formatTimeWithZone, magicLink } from '@/lib/constants'
-import { sendBulk } from '@/lib/bulk-send'
 import { serializeGuests, parseGuests } from '@/lib/csv'
+import { useEvent } from '@/hooks/useEvent'
+import { useBulkSend } from '@/hooks/useBulkSend'
 import {
   buildInviteEmail, buildReminderEmail, buildNudgeEmail, buildThankYouEmail,
   buildCustomEmail, defaultDraftBody,
@@ -32,13 +32,11 @@ import {
 function EventDetailContent() {
   const { eventId } = useParams()
   const router = useRouter()
-  const [event, setEvent] = useState(null)
-  const [invites, setInvites] = useState([])
-  const [comments, setComments] = useState([])
+  const { event, setEvent, invites, comments, error } = useEvent(eventId)
+  const { bulkSending, bulkProgress, bulkResult, bulkError, setBulkError, runBulk } = useBulkSend()
   const [newGuest, setNewGuest] = useState({ name: '', email: '' })
   const [sending, setSending] = useState(null)
   const [sendError, setSendError] = useState({})
-  const [error, setError] = useState(null)
   const [removeTarget, setRemoveTarget] = useState(null)
   const [copyTarget, setCopyTarget] = useState(null)
   const [copied, setCopied] = useState(false)
@@ -46,12 +44,6 @@ function EventDetailContent() {
   const [editBody, setEditBody] = useState('')
   const [editNameTarget, setEditNameTarget] = useState(null)
   const [editNameValue, setEditNameValue] = useState('')
-
-  // Bulk operation state (shared across all bulk sends)
-  const [bulkSending, setBulkSending] = useState(false)
-  const [bulkProgress, setBulkProgress] = useState(null) // { sent, total }
-  const [bulkResult, setBulkResult] = useState(null) // { label, sent, failed }
-  const [bulkError, setBulkError] = useState(null)
 
   // Send-all-invites dialog
   const [sendAllOpen, setSendAllOpen] = useState(false)
@@ -81,34 +73,6 @@ function EventDetailContent() {
   const [deleting, setDeleting] = useState(false)
 
   const nameInputRef = useRef(null)
-
-  useEffect(() => {
-    getDoc(doc(db, 'events', eventId))
-      .then(d => setEvent({ id: d.id, ...d.data() }))
-      .catch(err => setError(err.message))
-
-    const invitesQ = query(
-      collection(db, 'invites'),
-      where('eventId', '==', eventId),
-      orderBy('createdAt')
-    )
-    const commentsQ = query(
-      collection(db, 'comments'),
-      where('eventId', '==', eventId),
-      orderBy('createdAt')
-    )
-
-    const unsubInvites = onSnapshot(invitesQ,
-      snap => setInvites(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-      err => setError(err.message)
-    )
-    const unsubComments = onSnapshot(commentsQ,
-      snap => setComments(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-      err => setError(err.message)
-    )
-
-    return () => { unsubInvites(); unsubComments() }
-  }, [eventId])
 
   async function addGuest(e) {
     e.preventDefault()
@@ -174,101 +138,48 @@ function EventDetailContent() {
   }
 
   async function sendAllInvites() {
-    setBulkSending(true)
-    setBulkError(null)
-    setBulkResult(null)
-    try {
-      const result = await sendBulk({
-        targets: invites,
-        buildRequest: (invite) => ({
-          url: '/api/send-invite',
-          body: { token: invite.id, eventId },
-        }),
-        onProgress: setBulkProgress,
-      })
-      await updateDoc(doc(db, 'events', eventId), {
-        status: 'sent',
-        updatedAt: serverTimestamp(),
-      })
-      setEvent(prev => ({ ...prev, status: 'sent' }))
-      setSendAllOpen(false)
-      setBulkResult({ label: 'invitation', ...result })
-    } catch (err) {
-      setBulkError(err.message)
-    }
-    setBulkSending(false)
-    setBulkProgress(null)
+    await runBulk({
+      targets: invites,
+      label: 'invitation',
+      buildRequest: (invite) => ({ url: '/api/send-invite', body: { token: invite.id, eventId } }),
+      onSuccess: async () => {
+        await updateDoc(doc(db, 'events', eventId), { status: 'sent', updatedAt: serverTimestamp() })
+        setEvent(prev => ({ ...prev, status: 'sent' }))
+        setSendAllOpen(false)
+      },
+    })
   }
 
   async function sendReminder() {
     const targets = invites.filter(i => i.rsvp === 'attending')
     if (targets.length === 0) return
-    setBulkSending(true)
-    setBulkError(null)
-    setBulkResult(null)
-    try {
-      const result = await sendBulk({
-        targets,
-        buildRequest: (invite) => ({
-          url: '/api/send-reminder',
-          body: { eventId, token: invite.id },
-        }),
-        onProgress: setBulkProgress,
-      })
-      setBulkResult({ label: 'reminder', ...result })
-    } catch (err) {
-      setBulkError(err.message)
-    }
-    setBulkSending(false)
-    setBulkProgress(null)
+    await runBulk({
+      targets,
+      label: 'reminder',
+      buildRequest: (invite) => ({ url: '/api/send-reminder', body: { eventId, token: invite.id } }),
+    })
   }
 
   async function sendNudge() {
     const targets = invites.filter(i => !i.rsvp && i.emailSentAt)
     if (targets.length === 0) return
-    setBulkSending(true)
-    setBulkError(null)
-    setBulkResult(null)
-    try {
-      const result = await sendBulk({
-        targets,
-        buildRequest: (invite) => ({
-          url: '/api/send-nudge',
-          body: { eventId, token: invite.id },
-        }),
-        onProgress: setBulkProgress,
-      })
-      setBulkResult({ label: 'nudge', ...result })
-    } catch (err) {
-      setBulkError(err.message)
-    }
-    setBulkSending(false)
-    setBulkProgress(null)
+    await runBulk({
+      targets,
+      label: 'nudge',
+      buildRequest: (invite) => ({ url: '/api/send-nudge', body: { eventId, token: invite.id } }),
+    })
   }
 
   async function sendThankYou() {
     const audiences = Object.entries(thankYouAudiences).filter(([, v]) => v).map(([k]) => k)
     const targets = invites.filter(i => audiences.includes(i.rsvp) && !i.thankYouSentAt)
     if (targets.length === 0) return
-    setBulkSending(true)
-    setBulkError(null)
-    setBulkResult(null)
-    try {
-      const result = await sendBulk({
-        targets,
-        buildRequest: (invite) => ({
-          url: '/api/send-thank-you',
-          body: { eventId, token: invite.id },
-        }),
-        onProgress: setBulkProgress,
-      })
-      setThankYouOpen(false)
-      setBulkResult({ label: 'thank-you', ...result })
-    } catch (err) {
-      setBulkError(err.message)
-    }
-    setBulkSending(false)
-    setBulkProgress(null)
+    await runBulk({
+      targets,
+      label: 'thank-you',
+      buildRequest: (invite) => ({ url: '/api/send-thank-you', body: { eventId, token: invite.id } }),
+      onSuccess: () => setThankYouOpen(false),
+    })
   }
 
   async function sendCustomEmail() {
@@ -281,25 +192,15 @@ function EventDetailContent() {
       setBulkError('No matching guests to send to')
       return
     }
-    setBulkSending(true)
-    setBulkError(null)
-    setBulkResult(null)
-    try {
-      const result = await sendBulk({
-        targets,
-        buildRequest: (invite) => ({
-          url: '/api/send-custom',
-          body: { eventId, subject: composeSubject, body: composeBody, token: invite.id },
-        }),
-        onProgress: setBulkProgress,
-      })
-      setComposeOpen(false)
-      setBulkResult({ label: 'email', ...result })
-    } catch (err) {
-      setBulkError(err.message)
-    }
-    setBulkSending(false)
-    setBulkProgress(null)
+    await runBulk({
+      targets,
+      label: 'email',
+      buildRequest: (invite) => ({
+        url: '/api/send-custom',
+        body: { eventId, subject: composeSubject, body: composeBody, token: invite.id },
+      }),
+      onSuccess: () => setComposeOpen(false),
+    })
   }
 
   async function saveCommentEdit() {
