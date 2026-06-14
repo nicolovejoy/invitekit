@@ -20,8 +20,9 @@ InviteKit is an open-source event invitation web app (small dinner parties, conc
 ```bash
 npm run dev          # Local dev server (turbopack)
 npm run build        # Production build
-npm run test         # Vitest (single run)
+npm run test         # Vitest (single run; excludes *.rules.test.js)
 npm run test:watch   # Vitest (watch mode)
+npm run test:rules   # Firestore rules tests (boots the emulator; needs JDK 21+)
 npx vitest run src/__tests__/Header.test.jsx   # Run single test file
 npm run lint         # Next.js lint
 ```
@@ -71,14 +72,17 @@ Three roles, two auth mechanisms. **Firestore rules are the security boundary, n
 - API routes verify organizer claims server-side via `adminAuth.verifyIdToken()`
 - Organizer sign-in uses `signInWithPopup` (not redirect) — popup works across origins, enabling preview deploys on `preview.free-vite.com`. Header handles the full flow: popup → set-organizer-claim → force-refresh token.
 - `OrganizerRoute` is a client-side auth guard wrapping organizer-only pages
-- `useAuth()` hook returns `{ user, isOrganizer, loading }` — `loading` is true while `user === undefined`
+- `useAuth()` returns `{ user, isOrganizer, loading }` — `loading` is true while `user === undefined`. `useEvent(eventId)` subscribes to an event + its invites/comments; `useBulkSend()` owns shared bulk-email state + a `runBulk()` runner (see `src/hooks/`)
 - Path alias: `@/` maps to `src/`
 - Email templates are in `src/lib/email-templates.js` — five types: invite, reminder, nudge, thank-you, custom
-- `src/lib/constants.js` has `APP_URL`, `SENDER_EMAIL`, `magicLink()`, date/time formatters, `escapeHtml()`
+- `src/lib/constants.js` has `APP_URL`, `SENDER_EMAIL`, `ORGANIZER_CLAIM`, `magicLink()`, `senderAddress()`, date/time formatters, `escapeHtml()`
+- Server lib helpers: `lib/email-send.js` (`handleSend` + `EMAIL_TYPES` registry), `lib/resend.js` (`sendEmail`), `lib/bulk-send.js`, `lib/csv.js`, `lib/validation.js`
 
 ### Email API Routes
 
-Six route handlers in `src/app/api/`:
+The five send routes are thin delegations to `handleSend(request, type)` in
+`lib/email-send.js`; each type's templates + timestamp field live in the
+`EMAIL_TYPES` registry there. Route handlers in `src/app/api/`:
 
 - `send-invite` — initial invitation
 - `send-reminder` — for confirmed attendees
@@ -114,6 +118,8 @@ Firebase project: `free-vite`. Auth rewrite proxy in `next.config.mjs` points `/
 
 Tests live in `src/__tests__/`. Setup file at `src/__tests__/setup.js` imports `@testing-library/jest-dom/vitest`. Firebase and Next.js modules are mocked in tests (see `Header.test.jsx` for patterns). When writing tests, mock `@/hooks/useAuth`, `@/lib/firebase`, `firebase/auth`, and `next/link`.
 
+**Security-rules tests** (`*.rules.test.js`) run against the Firestore emulator via `npm run test:rules` (uses `@firebase/rules-unit-testing` + `vitest.rules.config.js`; needs JDK 21+). They're excluded from the default `npm test`. CI runs them in a separate `rules-test` job. Edit `firestore.rules` → add/adjust a case in `src/__tests__/firestore-rules.rules.test.js`.
+
 ## Git Workflow
 
 **Start every session by pulling and checking what's in flight:**
@@ -144,3 +150,4 @@ This repo was originally the private `nicolovejoy/freevite`. It was relaunched a
 - Permissions Phase 3: admin role, self-service organizer management, remove ORGANIZER_EMAILS
 - Autofill past invitees (#15) — now possible with `addedBy` field on invites
 - Open issues: RSVP UX audit (#12), all-day events (#13), rate limiting (#17), self-hoster SETUP.md (#18), brand config (#19)
+- Code quality (2026-06-13): added formatter/route/rules test coverage, collapsed the 5 send routes onto `EMAIL_TYPES`, and split the event-detail page into `useEvent`/`useBulkSend` + `lib/csv`/`lib/bulk-send`. Still open: extract presentational subcomponents from `events/[eventId]/page.jsx` (~900 lines, mostly JSX now); finish brand de-hardcoding for #19 (`ORGANIZER_CLAIM` is centralized server-side, but the string is still inline in `firestore.rules` + `Header`).
