@@ -1,12 +1,13 @@
 import { Geist } from 'next/font/google'
 import Header from '@/components/Header'
+import { BRAND } from '@/lib/constants'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
 
 export const metadata = {
-  title: 'Freevite',
-  description: 'Private event invitations',
+  title: BRAND.name,
+  description: BRAND.description,
 }
 
 export default function RootLayout({ children }) {

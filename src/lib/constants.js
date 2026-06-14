@@ -1,7 +1,15 @@
 export const APP_URL = process.env.APP_URL || 'https://free-vite.com'
 export const SENDER_EMAIL = process.env.SENDER_EMAIL || 'Freevite <rsvp@free-vite.com>'
 
+// User-facing brand. Self-hosters rebrand here (or via env) — see issue #19.
+export const BRAND = {
+  name: process.env.NEXT_PUBLIC_BRAND_NAME || 'Freevite',
+  description: process.env.NEXT_PUBLIC_BRAND_DESCRIPTION || 'Private event invitations',
+}
+
 // Firebase custom claim that marks a user as an organizer.
+// NOTE: this literal is mirrored in firestore.rules (which can't import JS) —
+// keep the two in sync.
 export const ORGANIZER_CLAIM = 'freevite:organizer'
 
 /** Bare address from SENDER_EMAIL ("Freevite <rsvp@x>" → "rsvp@x"). */

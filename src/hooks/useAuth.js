@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { onIdTokenChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import { ORGANIZER_CLAIM } from '@/lib/constants'
 
 export function useAuth() {
   const [user, setUser] = useState(undefined)
@@ -13,7 +14,7 @@ export function useAuth() {
       setUser(firebaseUser)
       if (firebaseUser) {
         const tokenResult = await firebaseUser.getIdTokenResult()
-        setIsOrganizer(!!tokenResult.claims['freevite:organizer'])
+        setIsOrganizer(!!tokenResult.claims[ORGANIZER_CLAIM])
       } else {
         setIsOrganizer(false)
       }
