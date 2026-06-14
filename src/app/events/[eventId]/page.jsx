@@ -11,6 +11,8 @@ import { db, auth } from '@/lib/firebase'
 import { Copy, Check, X, Pencil, Send, Eye, Mail, Upload, Download } from 'lucide-react'
 import OrganizerRoute from '@/components/OrganizerRoute'
 import { buildInviteText, formatDate, formatTimeWithZone, magicLink } from '@/lib/constants'
+import { sendBulk } from '@/lib/bulk-send'
+import { serializeGuests, parseGuests } from '@/lib/csv'
 import {
   buildInviteEmail, buildReminderEmail, buildNudgeEmail, buildThankYouEmail,
   buildCustomEmail, defaultDraftBody,
@@ -26,36 +28,6 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
-
-// Shared helper: send to a list of invites one at a time with progress
-async function sendBulk({ targets, buildRequest, onProgress }) {
-  const idToken = await auth.currentUser.getIdToken()
-  let sent = 0
-  let failed = 0
-  onProgress({ sent: 0, total: targets.length })
-  for (const invite of targets) {
-    const { url, body } = buildRequest(invite)
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify(body),
-      })
-      if (res.ok) sent++
-      else failed++
-    } catch {
-      failed++
-    }
-    onProgress({ sent: sent + failed, total: targets.length })
-    if (sent + failed < targets.length) {
-      await new Promise(r => setTimeout(r, 600))
-    }
-  }
-  return { sent, failed }
-}
 
 function EventDetailContent() {
   const { eventId } = useParams()
@@ -349,13 +321,7 @@ function EventDetailContent() {
   }
 
   function exportGuests() {
-    const header = 'name,email,rsvp,guestCount'
-    const rows = invites.map(i =>
-      [i.name, i.email, i.rsvp || '', i.guestCount ?? 1]
-        .map(v => `"${String(v).replace(/"/g, '""')}"`)
-        .join(',')
-    )
-    const csv = [header, ...rows].join('\n')
+    const csv = serializeGuests(invites)
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -366,22 +332,9 @@ function EventDetailContent() {
   }
 
   async function importGuests() {
-    const lines = importText.trim().split('\n').filter(Boolean)
-    // Skip header row if it looks like one
-    const start = /^name[,\t]/i.test(lines[0]) ? 1 : 0
-    let added = 0
-    let skipped = 0
     const existingEmails = new Set(invites.map(i => i.email.toLowerCase()))
-    for (let i = start; i < lines.length; i++) {
-      // Support CSV (comma) and TSV (tab)
-      const parts = lines[i].includes('\t')
-        ? lines[i].split('\t').map(s => s.trim().replace(/^"|"$/g, ''))
-        : lines[i].match(/(".*?"|[^,]+)/g)?.map(s => s.trim().replace(/^"|"$/g, '')) || []
-      const name = parts[0]?.trim()
-      const email = parts[1]?.trim()
-      if (!name || !email || !email.includes('@')) { skipped++; continue }
-      if (existingEmails.has(email.toLowerCase())) { skipped++; continue }
-      existingEmails.add(email.toLowerCase())
+    const { guests, skipped } = parseGuests(importText, existingEmails)
+    for (const { name, email } of guests) {
       const token = crypto.randomUUID()
       await setDoc(doc(db, 'invites', token), {
         token,
@@ -394,9 +347,8 @@ function EventDetailContent() {
         eventCreatedBy: event.createdBy,
         createdAt: serverTimestamp(),
       })
-      added++
     }
-    setImportResult({ added, skipped })
+    setImportResult({ added: guests.length, skipped })
     setImportText('')
   }
 
