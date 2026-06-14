@@ -8,18 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import TimeInput from '@/components/TimeInput'
 import { US_TIMEZONES } from '@/lib/constants'
-
-function validateEndTime(startTime, endTime) {
-  if (!endTime || !startTime) return null
-  const [sh, sm] = startTime.split(':').map(Number)
-  const [eh, em] = endTime.split(':').map(Number)
-  const startMins = sh * 60 + sm
-  const endMins = eh * 60 + em
-  if (endMins <= startMins) return 'End time must be after start time'
-  const diff = endMins - startMins
-  if (diff > 12 * 60) return 'End time must be within 12 hours of start time'
-  return null
-}
+import { validateEndTime } from '@/lib/validation'
 
 export default function EventForm({ form, onChange, onSubmit, submitLabel, onCancel, loading }) {
   const [endTimeError, setEndTimeError] = useState(null)
