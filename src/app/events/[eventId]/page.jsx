@@ -11,6 +11,7 @@ import { Copy, Check, X, Pencil, Send, Eye, Mail, Upload, Download } from 'lucid
 import OrganizerRoute from '@/components/OrganizerRoute'
 import { buildInviteText, formatDate, formatTimeWithZone, magicLink } from '@/lib/constants'
 import { serializeGuests, parseGuests } from '@/lib/csv'
+import { parseContact, isEmail } from '@/lib/contacts'
 import { useEvent } from '@/hooks/useEvent'
 import { useBulkSend } from '@/hooks/useBulkSend'
 import {
@@ -499,16 +500,14 @@ function EventDetailContent() {
               <Input
                 ref={nameInputRef}
                 id="guest-name"
-                placeholder="Name or Name <email>"
+                placeholder="Name"
                 value={newGuest.name}
                 onChange={e => {
                   const val = e.target.value
-                  const match = val.match(/^(.+?)\s*<([^>]+@[^>]+)>$/)
-                  if (match) {
-                    setNewGuest({ name: match[1].trim(), email: match[2].trim() })
-                  } else {
-                    setNewGuest(g => ({ ...g, name: val }))
-                  }
+                  const contact = parseContact(val)
+                  if (contact) setNewGuest(contact)
+                  else if (isEmail(val)) setNewGuest(g => ({ ...g, email: val.trim() }))
+                  else setNewGuest(g => ({ ...g, name: val }))
                 }}
                 required
               />
@@ -517,16 +516,14 @@ function EventDetailContent() {
               <Label htmlFor="guest-email" className="sr-only">Email</Label>
               <Input
                 id="guest-email"
-                placeholder="Email or Name <email>"
+                type="email"
+                placeholder="Email"
                 value={newGuest.email}
                 onChange={e => {
                   const val = e.target.value
-                  const match = val.match(/^(.+?)\s*<([^>]+@[^>]+)>$/)
-                  if (match) {
-                    setNewGuest({ name: match[1].trim(), email: match[2].trim() })
-                  } else {
-                    setNewGuest(g => ({ ...g, email: val }))
-                  }
+                  const contact = parseContact(val)
+                  if (contact) setNewGuest(contact)
+                  else setNewGuest(g => ({ ...g, email: val }))
                 }}
                 required
               />
