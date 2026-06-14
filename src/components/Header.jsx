@@ -5,6 +5,7 @@ import { signInWithPopup, signOut, GoogleAuthProvider } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
+import { BRAND } from '@/lib/constants'
 
 export default function Header() {
   const { user, isOrganizer, loading } = useAuth()
@@ -26,7 +27,7 @@ export default function Header() {
   return (
     <header className="border-b px-4 py-3 flex items-center justify-between">
       <div>
-        <Link href={isOrganizer ? '/dashboard' : '/'} className="font-semibold tracking-tight">Freevite</Link>
+        <Link href={isOrganizer ? '/dashboard' : '/'} className="font-semibold tracking-tight">{BRAND.name}</Link>
         {process.env.NEXT_PUBLIC_BUILD_TIME && (
           <span className="text-[10px] text-muted-foreground ml-2">{process.env.NEXT_PUBLIC_BUILD_TIME}</span>
         )}
