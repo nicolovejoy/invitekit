@@ -61,9 +61,10 @@ Three roles, two auth mechanisms. **Firestore rules are the security boundary, n
 
 ### Firestore Collections
 
-- `/events/{eventId}` — title, date, time, location, description, maxGuests, createdBy
-- `/invites/{token}` — document ID is the UUID (the magic link secret). Has eventId, email, name, uid (null until claimed), rsvp status, guestCount
-- `/comments/{commentId}` — eventId, inviteToken, uid, authorName, body, isPublic
+- `/events/{eventId}` — title, date, time, endTime (optional), location, description, maxGuests, createdBy, status (`draft`/`sent`), draftEmail (saved compose: subject/body/audience), createdAt, updatedAt
+- `/invites/{token}` — document ID is the UUID (the magic link secret). Has token, eventId, email, name, uid (null until claimed), rsvp status, guestCount, rsvpUpdatedAt, addedBy (inviting organizer uid; #15 groundwork), eventCreatedBy (denormalized; required by rules create/update/delete + dashboard query), emailSentAt/reminderSentAt/nudgeSentAt/thankYouSentAt (send timestamps), createdAt
+- `/comments/{commentId}` — eventId, inviteToken, uid, authorName, body, isPublic, createdAt, updatedAt/updatedBy (on edit)
+- `/waitlist/{docId}` — email, name, howFound, comments, createdAt. Write-only via client (rules block reads)
 
 ### Key Patterns
 
