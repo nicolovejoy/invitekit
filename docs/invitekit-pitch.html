@@ -3,83 +3,140 @@
 <head>
 <meta charset="utf-8">
 <style>
-  @page { size: Letter; margin: 0.9in 1in; }
+  @page { size: Letter; margin: 0.8in 0.95in; }
   * { box-sizing: border-box; }
   body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    color: #1a1a1a;
-    line-height: 1.5;
-    font-size: 11.5pt;
+    color: #1c1c1e;
+    line-height: 1.48;
+    font-size: 10.5pt;
     margin: 0;
   }
+  .head { display: flex; align-items: baseline; gap: 10pt; }
   .brand {
-    font-size: 22pt;
+    font-size: 24pt;
     font-weight: 700;
     letter-spacing: -0.02em;
     margin: 0;
   }
   .brand .kit { color: #4f46e5; }
+  .pill {
+    font-size: 8pt;
+    font-weight: 600;
+    color: #4f46e5;
+    background: #eceafb;
+    padding: 2.5pt 7pt;
+    border-radius: 20pt;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
   .tagline {
     font-size: 12pt;
     color: #555;
-    margin: 2pt 0 0;
+    margin: 4pt 0 0;
     font-weight: 500;
   }
-  hr {
-    border: none;
-    border-top: 2px solid #4f46e5;
-    margin: 14pt 0 16pt;
-    width: 48pt;
+  .rule { border: none; border-top: 2.5px solid #4f46e5; margin: 12pt 0 13pt; width: 46pt; }
+  p { margin: 0 0 9pt; }
+  strong { color: #111; }
+  em { color: #333; }
+  .label { font-weight: 700; color: #4f46e5; }
+
+  .caps-h {
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8a8a93;
+    margin: 13pt 0 7pt;
   }
-  p { margin: 0 0 11pt; }
-  .lead strong, p strong { color: #111; }
-  .label {
+  ul.caps {
+    column-count: 2;
+    column-gap: 22pt;
+    list-style: none;
+    margin: 0; padding: 0;
+    font-size: 9.7pt;
+  }
+  ul.caps li {
+    break-inside: avoid;
+    margin: 0 0 7pt;
+    padding-left: 11pt;
+    position: relative;
+    line-height: 1.38;
+    color: #3a3a40;
+  }
+  ul.caps li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 5pt;
+    width: 4pt; height: 4pt;
+    background: #4f46e5;
+    border-radius: 50%;
+  }
+  ul.caps b { color: #1c1c1e; }
+
+  .model {
+    margin-top: 13pt;
+    font-size: 10pt;
+  }
+
+  .ask {
+    margin-top: 13pt;
+    background: #f5f4fc;
+    border-left: 3px solid #4f46e5;
+    border-radius: 0 6pt 6pt 0;
+    padding: 11pt 15pt;
+  }
+  .ask .ask-h {
     font-weight: 700;
     color: #4f46e5;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 0 0 4pt;
   }
-  .status {
-    margin-top: 16pt;
-    padding: 11pt 14pt;
-    background: #f5f5fb;
-    border-radius: 6pt;
-    font-size: 10.5pt;
-    color: #333;
-  }
-  .ask {
-    margin-top: 14pt;
-    font-style: italic;
-    color: #222;
-    border-left: 3px solid #4f46e5;
-    padding-left: 12pt;
-  }
+  .ask p { margin: 0; font-size: 10.2pt; color: #2a2a2e; }
+
   .foot {
     position: fixed;
-    bottom: 0.5in;
-    left: 1in;
-    right: 1in;
-    font-size: 8.5pt;
-    color: #999;
+    bottom: 0.45in; left: 0.95in; right: 0.95in;
+    font-size: 8pt;
+    color: #aaa;
     text-align: center;
   }
 </style>
 </head>
 <body>
-  <p class="brand">Invite<span class="kit">Kit</span></p>
+  <div class="head">
+    <span class="brand">Invite<span class="kit">Kit</span></span>
+    <span class="pill">FORMERLY SOIRÉE</span>
+  </div>
   <p class="tagline">Privacy-first invitations for people who host a lot.</p>
-  <hr>
+  <hr class="rule">
 
-  <p class="lead">Partiful and Evite are free because <em>you're</em> the product — your guest list gets harvested and advertised against. InviteKit is the opposite: clean, no ads, no guest accounts, and <strong>open-source, so we can't sell your data</strong>.</p>
+  <p>You know this app as <strong>Soirée</strong> — the one we ran the band's show on last March. <strong>InviteKit is that same app, generalized.</strong> Same magic-link RSVPs and clean guest experience, now built to run <em>any</em> host's events under <em>any</em> brand. Soirée was the first night out; this is the product it grew into.</p>
 
-  <p>The wedge isn't one-off party-throwers — they'll use whatever's free and viral. It's <strong>recurring hosts</strong>: clubs, classes, congregations, communities running many events for the same group. They want co-organizers, a member list that persists, and their own branding — a real need the viral apps ignore, and a group that will pay.</p>
+  <p>Partiful and Evite are free because <em>you're</em> the product — your guest list gets harvested and advertised against. InviteKit is the opposite: clean, no ads, no guest accounts, and <strong>open-source, so we can't sell your data</strong>.</p>
 
-  <p><span class="label">Model.</span> Hosted SaaS is the business; open-source is the moat — trust and a marketing funnel, not a market we serve.</p>
+  <p>The opportunity isn't one-off party-throwers — they'll use whatever's free and viral. It's <strong>recurring hosts</strong>: bands, clubs, classes, congregations, communities running many events for the same people. They want co-organizers, a guest list that persists across events, and their own branding — a real need the viral apps ignore, and a group that will pay.</p>
 
-  <div class="status">
-    <span class="label">Status.</span> Live and working (free-vite.com) — events, RSVPs, magic-link guests, bulk email. Single-tenant today; multi-tenant white-label is next.
+  <div class="caps-h">What it does today</div>
+  <ul class="caps">
+    <li><b>One-tap RSVPs</b> — guests reply by magic link; no account, no app to download.</li>
+    <li><b>Guest management</b> — add by hand or import a CSV, with smart paste of name + email.</li>
+    <li><b>Email built in</b> — invites, reminders, nudges, thank-yous, and custom sends.</li>
+    <li><b>Live headcount</b> — RSVPs and guest counts update in real time.</li>
+    <li><b>Comments</b> — public notes or private messages between guest and host.</li>
+    <li><b>Your brand</b> — name and look are configurable; private by design — the invite link is the only key.</li>
+  </ul>
+
+  <p class="model"><span class="label">The model.</span> The hosted service is the business; the open-source code is the moat — it's what makes “we can't sell your data” believable, and it doubles as marketing. Live today at <strong>free-vite.com</strong>; single-tenant now, multi-tenant white-label next.</p>
+
+  <div class="ask">
+    <p class="ask-h">Where you come in</p>
+    <p>This is the part I'd love your head on. The bet is that <em>recurring</em> hosts — people like us with the band — are who'd actually pay. Does that ring true? And what would make a host switch from whatever they use now?</p>
   </div>
 
-  <p class="ask">For you: is the recurring host the right paying user — and what would make them switch?</p>
-
-  <div class="foot">InviteKit · open-source event invitations · github.com/nicolovejoy/invitekit</div>
+  <div class="foot">InviteKit · privacy-first event invitations · github.com/nicolovejoy/invitekit</div>
 </body>
 </html>
