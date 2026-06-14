@@ -1,6 +1,14 @@
 export const APP_URL = process.env.APP_URL || 'https://free-vite.com'
 export const SENDER_EMAIL = process.env.SENDER_EMAIL || 'Freevite <rsvp@free-vite.com>'
 
+// Firebase custom claim that marks a user as an organizer.
+export const ORGANIZER_CLAIM = 'freevite:organizer'
+
+/** Bare address from SENDER_EMAIL ("Freevite <rsvp@x>" → "rsvp@x"). */
+export function senderAddress() {
+  return SENDER_EMAIL.match(/<(.+)>/)?.[1] || SENDER_EMAIL
+}
+
 export const US_TIMEZONES = [
   { label: 'Eastern Time (ET)',   value: 'America/New_York' },
   { label: 'Central Time (CT)',   value: 'America/Chicago' },
