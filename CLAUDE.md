@@ -144,10 +144,12 @@ This repo was originally the private `nicolovejoy/freevite`. It was relaunched a
 
 ## Next Steps
 
-- Smoke-test TimeInput in the browser: edit-event page renders saved time, typing + dropdown selection, free-text + blur, bad text reverts on blur, form submit. The 2026-05-12 refactor (#33) moved the effect-based sync to a render-time `prevValue` check.
-- All Dependabot alerts resolved on 2026-05-12 via npm `overrides` in package.json (`postcss ^8.5.10`, `@tootallnate/once ^3.0.1`, `protobufjs ^7.5.6`). Revisit when bumping `firebase-admin` to v13 — most overrides may become unnecessary.
-- Permissions Phase 2: shared events with co-organizer `editors` array (see `docs/PERMISSIONS.md`)
-- Permissions Phase 3: admin role, self-service organizer management, remove ORGANIZER_EMAILS
-- Autofill past invitees (#15) — now possible with `addedBy` field on invites
-- Open issues: RSVP UX audit (#12), all-day events (#13), rate limiting (#17), self-hoster SETUP.md (#18), brand config (#19)
-- Code quality (2026-06-13): added formatter/route/rules test coverage, collapsed the 5 send routes onto `EMAIL_TYPES`, and split the event-detail page into `useEvent`/`useBulkSend` + `lib/csv`/`lib/bulk-send`. Still open: extract presentational subcomponents from `events/[eventId]/page.jsx` (~900 lines, mostly JSX now); finish brand de-hardcoding for #19 (`ORGANIZER_CLAIM` is centralized server-side, but the string is still inline in `firestore.rules` + `Header`).
+**Open issues:** brand config (#19), all-day events (#13), autofill past invitees (#15), rate limiting (#17), RSVP UX audit (#12), self-hoster SETUP.md (#18). #16 (git author email) is closeable — commits are landing fine.
+
+**Code quality — remaining after #52–#60** (tests 36→109, send routes on `EMAIL_TYPES`, event page split into `useEvent`/`useBulkSend` + `lib/csv`/`lib/bulk-send`/`lib/contacts`):
+- Extract presentational subcomponents from `events/[eventId]/page.jsx` (901 lines, mostly JSX): `GuestList`, `Headcount`, `ComposeDialog`, `ImportDialog`, `ThankYouDialog`, `CopyInviteDialog`.
+- Finish #19 brand de-hardcoding. Server side done (`ORGANIZER_CLAIM`, `senderAddress()`). Remaining inline strings: claim at `src/hooks/useAuth.js:16` (can import `ORGANIZER_CLAIM`) and `firestore.rules:6` (can't import JS — add a drift comment); brand name at `layout.jsx:8` + `Header.jsx:29`.
+
+**Permissions roadmap** (`docs/PERMISSIONS.md`): Phase 2 = shared events via co-organizer `editors` array; Phase 3 = admin role + self-service organizer mgmt, drop `ORGANIZER_EMAILS`.
+
+**Dependabot:** open PRs #45/#50/#51/#55/#56 — all transitive/dev, batch-review. (Direct alerts were cleared 2026-05-12 via npm `overrides`; revisit those overrides when bumping `firebase-admin` to v13.)
