@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminAuth } from '@/lib/firebase-admin'
+import { ORGANIZER_CLAIM } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +22,7 @@ export async function POST(request) {
   }
 
   const { uid, email } = decoded
-  const alreadyOrganizer = !!decoded['freevite:organizer']
+  const alreadyOrganizer = !!decoded[ORGANIZER_CLAIM]
   const emailAuthorized = ORGANIZER_EMAILS.includes(email)
   console.log('[organizer-claim]', { email, uid, alreadyOrganizer, emailAuthorized, allowedEmails: ORGANIZER_EMAILS })
 
@@ -29,7 +30,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Not authorized', email, allowedEmails: ORGANIZER_EMAILS }, { status: 403 })
   }
 
-  await adminAuth.setCustomUserClaims(uid, { 'freevite:organizer': true })
+  await adminAuth.setCustomUserClaims(uid, { [ORGANIZER_CLAIM]: true })
 
   return NextResponse.json({ ok: true })
 }
