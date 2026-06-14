@@ -75,19 +75,20 @@ export default function RSVPPage() {
         return
       }
 
-      // Use existing auth if signed in (e.g. organizer), otherwise sign in anonymously
-      let uid
-      if (auth.currentUser && !auth.currentUser.isAnonymous) {
-        uid = auth.currentUser.uid
-      } else {
-        const result = await signInAnonymously(auth)
-        uid = result.user.uid
+      // Ensure an auth identity (organizer stays signed in; everyone else gets
+      // an anonymous account). The server derives the uid from this token.
+      if (!auth.currentUser) {
+        await signInAnonymously(auth)
       }
+      const idToken = await auth.currentUser.getIdToken()
 
       const claimRes = await fetch('/api/claim-invite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, uid }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ token }),
       })
       if (!claimRes.ok && claimRes.status !== 409) {
         const body = await claimRes.json().catch(() => ({}))

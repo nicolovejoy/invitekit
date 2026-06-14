@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getAdminDb } from '@/lib/firebase-admin'
+import { getAdminDb, getAdminAuth } from '@/lib/firebase-admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,10 +7,25 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 export async function POST(request) {
   const adminDb = getAdminDb()
-  const { token, uid } = await request.json().catch(() => ({}))
 
-  if (!token || !uid) {
-    return NextResponse.json({ error: 'Missing token or uid' }, { status: 400 })
+  // Derive the uid from a verified Firebase ID token (anonymous is fine) rather
+  // than trusting the body — otherwise a caller with the invite URL could bind
+  // it to an arbitrary uid and lock out the real guest.
+  const idToken = request.headers.get('authorization')?.replace('Bearer ', '')
+  if (!idToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  let uid
+  try {
+    uid = (await getAdminAuth().verifyIdToken(idToken)).uid
+  } catch {
+    return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+  }
+
+  const { token } = await request.json().catch(() => ({}))
+
+  if (!token) {
+    return NextResponse.json({ error: 'Missing token' }, { status: 400 })
   }
   if (!UUID_RE.test(token)) {
     return NextResponse.json({ error: 'Invalid token format' }, { status: 400 })
