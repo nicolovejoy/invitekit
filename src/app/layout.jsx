@@ -1,5 +1,6 @@
 import { Geist } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script'
 import Header from '@/components/Header'
 import { BRAND } from '@/lib/constants'
 import './globals.css'
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
         <Header />
         {children}
         <Analytics />
+        <Script src="https://prompt-labs.org/beacon.js" strategy="afterInteractive" />
       </body>
     </html>
   )
