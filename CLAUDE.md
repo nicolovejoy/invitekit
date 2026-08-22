@@ -143,14 +143,16 @@ The reference deployment runs on Vercel with auto-deploy on push to `main`. Cust
 
 This repo was originally the private `nicolovejoy/freevite`. It was relaunched as public `nicolovejoy/invitekit` with a fresh commit history and MIT license so others can fork and self-host.
 
+**Product direction** (`docs/VISION.md`, 2026-06-14): open-core SaaS — hosted service is the business, open-source is the trust moat + funnel (not a self-host market). Paying user = recurring small-org hosts (clubs/classes/communities/bands), not one-off party-throwers. Keep the data model multi-tenant-ready; defer billing/signup infra until willingness-to-pay is validated. **Open question to settle before Permissions Phase 3:** is the recurring host the right paying user?
+
 ## Next Steps
 
-**Open issues:** brand config (#19), all-day events (#13), autofill past invitees (#15), rate limiting (#17), RSVP UX audit (#12), self-hoster SETUP.md (#18). #16 (git author email) is closeable — commits are landing fine.
+1. **Merge PR #66** (`docs/vision` — VISION.md + Soirée-framed elevator-pitch PDF, shared with Manine for the product angle).
+2. **#17 rate-limiting** — design settled. Provision Upstash (Marketplace + `UPSTASH_REDIS_REST_URL`/`_TOKEN`), then build `lib/rate-limit.js` (sliding-window, `x-real-ip` + token keys, **fail-open** when unconfigured). Prerequisite: move the waitlist write into `POST /api/waitlist` + lock the `waitlist` rule (client-side `addDoc` today → unlimitable). Limits: claim-invite 10/10min per IP + 5/hr per token; waitlist 5/hr per IP.
+3. **Extract presentational subcomponents** from `events/[eventId]/page.jsx` (901 lines, mostly JSX): `GuestList`, `Headcount`, `ComposeDialog`, `ImportDialog`, `ThankYouDialog`, `CopyInviteDialog` — unblocks UI test coverage.
+4. **Finish #19** broader white-label/copy surface. Brand name + claim now centralized (`BRAND`, `ORGANIZER_CLAIM`; #63); remaining is per-tenant config (ties into product direction). NOTE: add `NEXT_PUBLIC_BRAND_NAME` to `.env.local.example` (hook-blocked for Claude — human edit).
+5. **Other open issues:** #13 all-day events (cheap via registry/formatters), #15 autofill past invitees (`addedBy` written; needs composite index + UI), #18 self-hoster SETUP.md, #12 RSVP UX audit.
 
-**Code quality — remaining after #52–#60** (tests 36→109, send routes on `EMAIL_TYPES`, event page split into `useEvent`/`useBulkSend` + `lib/csv`/`lib/bulk-send`/`lib/contacts`):
-- Extract presentational subcomponents from `events/[eventId]/page.jsx` (901 lines, mostly JSX): `GuestList`, `Headcount`, `ComposeDialog`, `ImportDialog`, `ThankYouDialog`, `CopyInviteDialog`.
-- Finish #19 brand de-hardcoding. Server side done (`ORGANIZER_CLAIM`, `senderAddress()`). Remaining inline strings: claim at `src/hooks/useAuth.js:16` (can import `ORGANIZER_CLAIM`) and `firestore.rules:6` (can't import JS — add a drift comment); brand name at `layout.jsx:8` + `Header.jsx:29`.
+**Permissions roadmap** (`docs/PERMISSIONS.md`): Phase 2 = shared events via co-organizer `editors` array; Phase 3 = admin role + self-service organizer mgmt, drop `ORGANIZER_EMAILS`. Phase 3 is the first work that only pays off under the SaaS direction — settle the paying-user question first.
 
-**Permissions roadmap** (`docs/PERMISSIONS.md`): Phase 2 = shared events via co-organizer `editors` array; Phase 3 = admin role + self-service organizer mgmt, drop `ORGANIZER_EMAILS`.
-
-**Dependabot:** open PRs #45/#50/#51/#55/#56 — all transitive/dev, batch-review. (Direct alerts were cleared 2026-05-12 via npm `overrides`; revisit those overrides when bumping `firebase-admin` to v13.)
+**Done this session (2026-06-14):** brand config #19 (#63), schema-doc fixes (#64), claim-invite ID-token verification = "Option A" (#65), all 5 Dependabot bumps merged, #16 closed.
